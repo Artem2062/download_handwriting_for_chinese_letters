@@ -132,7 +132,7 @@ async function downloadFile(url, filepath) {
       console.log(`Обрабатываем ${char}...`);
       const link = await getDownloadLink(char);
       if (link) {
-        const filename = `${char}.png`; // или другой формат, если известно
+        const filename = `${char}.pdf`; // или другой формат, если известно
         const filepath = path.join(dir, filename);
         // Проверяем, существует ли файл
         if (fs.existsSync(filepath)) {
@@ -154,4 +154,5 @@ async function downloadFile(url, filepath) {
   if (action !== '1' && action !== '2' && action !== '3') {
     console.log('Недопустимый выбор. Завершение.');
   }
+
 })();
