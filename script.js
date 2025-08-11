@@ -7,14 +7,16 @@ const path = require('path');
 const hsk1_characters = [];
 
 function processInput(input, existingList) {
-  const matches = input.match(/[\u4e00-\u9fa5]+/g);
-  if (matches) {
-    matches.forEach(c => {
-      if (!existingList.includes(c)) {
+  const parts = input.split(',');
+  parts.forEach(part => {
+    const trimmed = part.trim().replace(/['"]/g, ''); // убираем кавычки
+    // каждый символ отдельно
+    for (const c of trimmed) {
+      if (/[\u4e00-\u9fa5]/.test(c) && !existingList.includes(c)) {
         existingList.push(c);
       }
-    });
-  }
+    }
+  });
 }
 
 function askQuestion(query) {
@@ -154,5 +156,4 @@ async function downloadFile(url, filepath) {
   if (action !== '1' && action !== '2' && action !== '3') {
     console.log('Недопустимый выбор. Завершение.');
   }
-
 })();
