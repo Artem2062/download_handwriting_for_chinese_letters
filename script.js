@@ -9,8 +9,7 @@ const hsk1_characters = [];
 function processInput(input, existingList) {
   const parts = input.split(',');
   parts.forEach(part => {
-    const trimmed = part.trim().replace(/['"]/g, ''); // убираем кавычки
-    // каждый символ отдельно
+    const trimmed = part.trim().replace(/['"]/g, '');
     for (const c of trimmed) {
       if (/[\u4e00-\u9fa5]/.test(c) && !existingList.includes(c)) {
         existingList.push(c);
@@ -96,17 +95,12 @@ async function downloadFile(url, filepath) {
 }
 
 (async () => {
-  // Спрашиваем пользователя что делать
   const choice = await askQuestion('Выберите действие:\n1 - Получить ссылки\n2 - Скачать все файлы в папку files\n3 - И то и другое\nВведите 1, 2 или 3: ');
   const action = choice.trim();
-
   await askQuestionsAndProcess();
-
   const search_url = 'https://www.strokeorder.com/chinese/';
   const results = [];
-
   if (action === '1' || action === '3') {
-    // Получение ссылок
     for (const char of hsk1_characters) {
       console.log(`Обрабатываем ${char}...`);
       const link = await getDownloadLink(char);
@@ -115,28 +109,23 @@ async function downloadFile(url, filepath) {
       }
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    // Сохраняем результаты
     fs.writeFileSync('hsk1_links.json', JSON.stringify(results, null, 2), 'utf-8');
     console.log("Ссылки сохранены в 'hsk1_links.json'.");
     const linksText = results.map(r => r.download_link).join('\n');
     clipboardy.writeSync(linksText);
     console.log('Все ссылки скопированы в буфер обмена!');
   }
-
   if (action === '2' || action === '3') {
-    // Создаем папку files, если не существует
     const dir = path.join(__dirname, 'files');
     if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
     }
-    // Обрабатываем скачивание
     for (const char of hsk1_characters) {
       console.log(`Обрабатываем ${char}...`);
       const link = await getDownloadLink(char);
       if (link) {
-        const filename = `${char}.pdf`; // или другой формат, если известно
+        const filename = `${char}.pdf`; 
         const filepath = path.join(dir, filename);
-        // Проверяем, существует ли файл
         if (fs.existsSync(filepath)) {
           console.log(`Файл для ${char} уже существует, пропускаем скачивание.`);
         } else {
@@ -148,11 +137,10 @@ async function downloadFile(url, filepath) {
           }
         }
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
     console.log('Процесс скачивания завершен.');
   }
-
   if (action !== '1' && action !== '2' && action !== '3') {
     console.log('Недопустимый выбор. Завершение.');
   }
