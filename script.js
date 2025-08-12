@@ -3,8 +3,18 @@ const fs = require('fs');
 const clipboardy = require('clipboardy');
 const readline = require('readline');
 const path = require('path');
-
 const hsk1_characters = [];
+const linksFilePath = 'hsk1_links.json';
+
+let existingLinks = [];
+if (fs.existsSync(linksFilePath)) {
+  try {
+    const data = fs.readFileSync(linksFilePath, 'utf-8');
+    existingLinks = JSON.parse(data);
+  } catch (err) {
+    console.error('Ошибка при чтении файла hsk1_links.json:', err);
+  }
+}
 
 function processInput(input, existingList) {
   const parts = input.split(',');
@@ -36,13 +46,11 @@ async function askQuestionsAndProcess() {
   });
   let inputLines = [];
   console.log('Введите список иероглифов (для окончания ввода оставьте строку пустой):');
-
   for await (const line of rl) {
     if (line.trim() === '') break;
     inputLines.push(line);
   }
   rl.close();
-
   const combinedInput = inputLines.join('\n');
   processInput(combinedInput, hsk1_characters);
 }
@@ -98,18 +106,25 @@ async function downloadFile(url, filepath) {
   const choice = await askQuestion('Выберите действие:\n1 - Получить ссылки\n2 - Скачать все файлы в папку files\n3 - И то и другое\nВведите 1, 2 или 3: ');
   const action = choice.trim();
   await askQuestionsAndProcess();
-  const search_url = 'https://www.strokeorder.com/chinese/';
   const results = [];
   if (action === '1' || action === '3') {
     for (const char of hsk1_characters) {
       console.log(`Обрабатываем ${char}...`);
       const link = await getDownloadLink(char);
       if (link) {
+        const existingIndex = existingLinks.findIndex(item => item.character === char);
+        if (existingIndex !== -1) {
+          if (existingLinks[existingIndex].download_link !== link) {
+            existingLinks[existingIndex].download_link = link;
+          }
+        } else {
+          existingLinks.push({ character: char, download_link: link });
+        }
         results.push({ character: char, download_link: link });
       }
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    fs.writeFileSync('hsk1_links.json', JSON.stringify(results, null, 2), 'utf-8');
+    fs.writeFileSync(linksFilePath, JSON.stringify(existingLinks, null, 2), 'utf-8');
     console.log("Ссылки сохранены в 'hsk1_links.json'.");
     const linksText = results.map(r => r.download_link).join('\n');
     clipboardy.writeSync(linksText);
